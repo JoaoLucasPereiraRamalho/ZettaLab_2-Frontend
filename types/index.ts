@@ -32,3 +32,10 @@ export interface Task {
 export interface LoginResponse {
   token: string;
 }
+
+export interface DashboardData {
+  categoryId: number;
+  categoryName: string;
+  categoryColor: string;
+  tasks: Task[];
+}
