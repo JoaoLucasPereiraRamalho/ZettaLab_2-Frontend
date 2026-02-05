@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import api from "@/lib/api";
 import { Task } from "@/types";
-import { SubtaskList } from "./subtask-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,26 +43,6 @@ export function EditTaskDialog({
     task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : "",
   );
 
-  // @ts-ignore - Ignora erro de tipo se subtasks não existir na interface Task
-  const [subtasks, setSubtasks] = useState<any[]>(task.subtasks || []);
-
-  useEffect(() => {
-    if (open) {
-      refreshSubtasks();
-    }
-  }, [open, task]);
-
-  const refreshSubtasks = async () => {
-    try {
-      const response = await api.get(`/tasks/${task.id}`);
-      if (response.data && response.data.subtasks) {
-        setSubtasks(response.data.subtasks);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar subtarefas");
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -74,7 +53,6 @@ export function EditTaskDialog({
         description,
         priority,
         dueDate: dueDate || null,
-        // @ts-ignore
         categoryId: task.categoryId,
       });
 
@@ -90,9 +68,9 @@ export function EditTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Editar Tarefa</DialogTitle>
+          <DialogTitle>Editar Detalhes</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -138,20 +116,11 @@ export function EditTaskDialog({
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={4}
             />
           </div>
 
-          <div className="space-y-2 pt-2 border-t">
-            <Label className="text-base font-semibold">Checklist</Label>
-            <SubtaskList
-              taskId={task.id}
-              subtasks={subtasks}
-              onUpdate={refreshSubtasks}
-            />
-          </div>
-
-          <Button type="submit" className="w-full mt-4" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </form>

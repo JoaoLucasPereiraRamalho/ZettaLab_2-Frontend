@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import api from "@/lib/api";
-import { Subtask } from "@/types"; // Mantemos seu tipo original
+import { Subtask } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,40 +16,35 @@ interface SubtaskListProps {
 }
 
 export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
-  const [newTitle, setNewTitle] = useState("");
+  const [newText, setNewText] = useState("");
   const [loadingAdd, setLoadingAdd] = useState(false);
 
-  // Criar Subtarefa
+  // 1. CRIAR (Envia 'description' conforme seu DTO)
   const handleAdd = async () => {
-    if (!newTitle.trim()) return;
+    if (!newText.trim()) return;
     setLoadingAdd(true);
 
     try {
-      // Envia o payload exato que o seu SubtaskCreateDTO espera
       await api.post("/subtasks", {
-        title: newTitle,
+        description: newText, // <--- AJUSTE 1: Nome do campo correto para o Java
         taskId: taskId,
-        // Se o seu DTO exigir status, descomente abaixo:
-        // status: "PENDING"
       });
-      setNewTitle("");
-      onUpdate(); // Recarrega a lista
+      setNewText("");
+      onUpdate();
     } catch (error) {
-      console.error(error);
       toast.error("Erro ao criar subtarefa");
     } finally {
       setLoadingAdd(false);
     }
   };
 
-  // Atualizar Status (toggle)
+  // 2. ATUALIZAR STATUS
   const handleToggle = async (sub: any) => {
-    // Verifica se está completo (suporta tanto boolean quanto string 'COMPLETED')
+    // Suporta tanto o Enum do Java ("COMPLETED") quanto boolean
     const isCompleted = sub.status === "COMPLETED" || sub.completed === true;
-    const newStatus = isCompleted ? "PENDING" : "COMPLETED";
+    const newStatus = isCompleted ? "PENDING" : "COMPLETED"; // Envia string para o Java
 
     try {
-      // Envia para a rota exata do seu controller
       await api.patch(`/subtasks/${sub.id}/status`, JSON.stringify(newStatus), {
         headers: { "Content-Type": "application/json" },
       });
@@ -59,7 +54,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
     }
   };
 
-  // Deletar
+  // 3. DELETAR
   const handleDelete = async (subTaskId: number) => {
     try {
       await api.delete(`/subtasks/${subTaskId}`);
@@ -75,8 +70,8 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
       <div className="flex items-center gap-2">
         <Input
           placeholder="Adicionar etapa..."
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
+          value={newText}
+          onChange={(e) => setNewText(e.target.value)}
           onKeyDown={(e) =>
             e.key === "Enter" && (e.preventDefault(), handleAdd())
           }
@@ -98,7 +93,8 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
 
       <div className="space-y-2">
         {subtasks.map((sub: any) => {
-          // Lógica visual para suportar seu Type atual (seja boolean ou string)
+          // Lógica visual para lidar com 'description' (backend) vs 'title' (frontend type)
+          const text = sub.description || sub.title;
           const isCompleted =
             sub.status === "COMPLETED" || sub.completed === true;
 
@@ -115,7 +111,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
                 <span
                   className={isCompleted ? "line-through text-slate-400" : ""}
                 >
-                  {sub.title}
+                  {text} {/* <--- AJUSTE 2: Exibe o texto correto */}
                 </span>
               </div>
               <Button
