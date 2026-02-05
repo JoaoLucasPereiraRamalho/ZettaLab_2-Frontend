@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/auth-context";
 import api from "@/lib/api";
 import { DashboardData } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -14,13 +13,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, CheckCircle2, Calendar, Loader2 } from "lucide-react";
+import { Calendar, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { CreateCategoryDialog } from "@/components/dashboard/create-category-dialog";
 import { CreateTaskDialog } from "@/components/dashboard/create-task-dialog";
 import { TaskActions } from "@/components/dashboard/task-actions";
 
-// --- 1. CONFIGURAÇÃO DE CORES (VISUAL) ---
+// --- CONFIGURAÇÕES VISUAIS E LÓGICAS ---
+
+const PRIORITY_WEIGHTS: Record<string, number> = {
+  URGENTE: 5,
+  ALTA: 4,
+  MEDIA: 3,
+  BAIXA: 2,
+  LONGO_PRAZO: 1,
+};
+
 const getPriorityConfig = (priority: string) => {
   switch (priority) {
     case "URGENTE":
@@ -59,18 +67,7 @@ const getPriorityConfig = (priority: string) => {
   }
 };
 
-// --- 2. CONFIGURAÇÃO DE ORDENAÇÃO (LÓGICA) ---
-// Quanto maior o número, mais no topo aparece
-const PRIORITY_WEIGHTS: Record<string, number> = {
-  URGENTE: 5,
-  ALTA: 4,
-  MEDIA: 3,
-  BAIXA: 2,
-  LONGO_PRAZO: 1,
-};
-
 export default function DashboardPage() {
-  const { logout } = useAuth();
   const [data, setData] = useState<DashboardData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,7 +83,6 @@ export default function DashboardPage() {
         tasks: column.tasks.sort((a, b) => {
           const weightA = PRIORITY_WEIGHTS[a.priority] || 0;
           const weightB = PRIORITY_WEIGHTS[b.priority] || 0;
-          // Ordem decrescente (Maior peso primeiro)
           return weightB - weightA;
         }),
       }));
@@ -159,52 +155,39 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
-      {/* HEADER */}
-      <header className="flex items-center justify-between px-8 py-4 bg-white border-b shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary h-8 w-8 rounded-lg flex items-center justify-center">
-            <CheckCircle2 className="text-white h-5 w-5" />
-          </div>
-          <h1 className="text-xl font-bold text-slate-800">Todo App</h1>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={fetchDashboard}>
-            Atualizar
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
-        </div>
-      </header>
-
-      {/* KANBAN */}
+    <div className="flex flex-col h-full bg-slate-50">
       <main className="flex-1 overflow-auto p-8">
+        {/* Barra de Título e Ações */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-slate-800">
-            Minhas Tarefas
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-semibold text-slate-800">
+              Minhas Tarefas
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={fetchDashboard}
+              title="Atualizar"
+            >
+              <RefreshCw className="h-4 w-4 text-slate-500" />
+            </Button>
+          </div>
+
           <div className="flex gap-2">
             <CreateCategoryDialog onSuccess={fetchDashboard} />
             <CreateTaskDialog onSuccess={fetchDashboard} />
           </div>
         </div>
 
-        <ScrollArea className="w-full whitespace-nowrap rounded-md">
+        {/* Área de Colunas */}
+        <ScrollArea className="w-full whitespace-nowrap rounded-md h-[calc(100%-4rem)]">
           <div className="flex gap-6 pb-4">
             {data.map((column) => (
               <div key={column.categoryId} className="w-80 flex-shrink-0">
@@ -257,7 +240,7 @@ export default function DashboardPage() {
                           </CardHeader>
 
                           <CardContent className="p-4 pt-2">
-                            {/* SUBTAREFAS */}
+                            {/* Subtarefas */}
                             {task.subtasks && task.subtasks.length > 0 && (
                               <div className="mt-2 flex flex-col gap-1 border-t pt-2 border-slate-100">
                                 {task.subtasks.map((sub: any) => {
@@ -297,7 +280,7 @@ export default function DashboardPage() {
                               </div>
                             )}
 
-                            {/* RODAPÉ DO CARD */}
+                            {/* Rodapé do Card */}
                             <div className="flex items-center justify-between text-xs text-slate-500 mt-3 flex-wrap gap-2">
                               <div className="flex items-center gap-2">
                                 {/* STATUS */}
