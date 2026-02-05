@@ -130,14 +130,20 @@ export default function DashboardPage() {
                         <CardContent className="p-4 pt-2">
                           <div className="flex items-center justify-between text-xs text-slate-500 mt-2">
                             <Badge
-                              variant={
+                              variant="outline"
+                              className={`text-[10px] px-1 py-0 h-5 border-0 text-white ${
                                 task.status === "COMPLETED"
-                                  ? "default"
-                                  : "outline"
-                              }
-                              className="text-[10px] px-1 py-0 h-5"
+                                  ? "bg-green-500 hover:bg-green-600"
+                                  : task.status === "IN_PROGRESS"
+                                    ? "bg-blue-500 hover:bg-blue-600"
+                                    : "bg-slate-500 hover:bg-slate-600"
+                              }`}
                             >
-                              {task.status}
+                              {task.status === "IN_PROGRESS"
+                                ? "FAZENDO"
+                                : task.status === "COMPLETED"
+                                  ? "CONCLUÍDO"
+                                  : "PENDENTE"}
                             </Badge>
                             {task.dueDate && (
                               <div className="flex items-center gap-1">

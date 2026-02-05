@@ -21,7 +21,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Trash2, CheckCircle, RotateCcw } from "lucide-react";
+import {
+  MoreVertical,
+  Trash2,
+  CheckCircle,
+  RotateCcw,
+  PlayCircle,
+  Timer,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface TaskActionsProps {
@@ -51,7 +58,7 @@ export function TaskActions({
   const handleStatusChange = async (newStatus: string) => {
     setLoading(true);
     try {
-      // O backend espera a string exata entre aspas, ex: "COMPLETED"
+      // Envia a string exata que o Java espera (Enum)
       await api.patch(`/tasks/${taskId}/status`, JSON.stringify(newStatus), {
         headers: {
           "Content-Type": "application/json",
@@ -78,18 +85,43 @@ export function TaskActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+          <DropdownMenuLabel>Mudar Status</DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {currentStatus !== "COMPLETED" ? (
-            <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
-              <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-              Concluir
-            </DropdownMenuItem>
-          ) : (
+          {/* Lógica de Opções de Status */}
+
+          {currentStatus === "PENDING" && (
+            <>
+              <DropdownMenuItem
+                onClick={() => handleStatusChange("IN_PROGRESS")}
+              >
+                <PlayCircle className="mr-2 h-4 w-4 text-blue-600" />
+                Começar (Fazendo)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
+                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                Concluir
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {currentStatus === "IN_PROGRESS" && (
+            <>
+              <DropdownMenuItem onClick={() => handleStatusChange("PENDING")}>
+                <RotateCcw className="mr-2 h-4 w-4 text-orange-500" />
+                Voltar p/ Pendente
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
+                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                Concluir
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {currentStatus === "COMPLETED" && (
             <DropdownMenuItem onClick={() => handleStatusChange("PENDING")}>
               <RotateCcw className="mr-2 h-4 w-4 text-orange-500" />
-              Reabrir
+              Reabrir Tarefa
             </DropdownMenuItem>
           )}
 
@@ -111,8 +143,7 @@ export function TaskActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente a
-              tarefa.
+              Esta ação excluirá a tarefa permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
