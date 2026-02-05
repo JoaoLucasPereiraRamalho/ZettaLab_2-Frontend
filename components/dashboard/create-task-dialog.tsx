@@ -33,14 +33,12 @@ export function CreateTaskDialog({ onSuccess }: CreateTaskDialogProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Form States
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("MEDIA");
   const [categoryId, setCategoryId] = useState("");
   const [dueDate, setDueDate] = useState("");
 
-  // Busca categorias ao abrir o modal (ou montar o componente)
   useEffect(() => {
     api.get("/categories").then((res) => setCategories(res.data));
   }, []);

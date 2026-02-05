@@ -12,6 +12,7 @@ import { LogOut, Plus, Calendar, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateCategoryDialog } from "@/components/dashboard/create-category-dialog";
 import { CreateTaskDialog } from "@/components/dashboard/create-task-dialog";
+import { TaskActions } from "@/components/dashboard/task-actions";
 
 export default function DashboardPage() {
   const { logout, token } = useAuth();
@@ -69,7 +70,7 @@ export default function DashboardPage() {
       </header>
 
       {/* KANBAN */}
-      <main className="flex-1 overflow-hidden p-8">
+      <main className="flex-1 overflow-auto p-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-semibold text-slate-800">
             Minhas Tarefas
@@ -112,13 +113,18 @@ export default function DashboardPage() {
                         style={{ borderLeftColor: column.categoryColor }}
                       >
                         <CardHeader className="p-4 pb-2">
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start gap-2">
                             <CardTitle
-                              className="text-base font-medium truncate w-full"
+                              className="text-base font-medium truncate leading-tight"
                               title={task.title}
                             >
                               {task.title}
                             </CardTitle>
+                            <TaskActions
+                              taskId={task.id}
+                              currentStatus={task.status}
+                              onSuccess={fetchDashboard}
+                            />
                           </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-2">
