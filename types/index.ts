@@ -25,7 +25,7 @@ export interface Task {
   priority: "BAIXA" | "MEDIA" | "ALTA" | "URGENTE" | "LONGO_PRAZO";
   dueDate?: string;
   createdAt: string;
-  category: Category;
+  categoryId?: number;
   subtasks: Subtask[];
 }
 

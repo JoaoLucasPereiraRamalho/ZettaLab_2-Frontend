@@ -121,8 +121,7 @@ export default function DashboardPage() {
                               {task.title}
                             </CardTitle>
                             <TaskActions
-                              taskId={task.id}
-                              currentStatus={task.status}
+                              task={{ ...task, categoryId: column.categoryId }}
                               onSuccess={fetchDashboard}
                             />
                           </div>

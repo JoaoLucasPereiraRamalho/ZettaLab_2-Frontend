@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import api from "@/lib/api";
+import { Task } from "@/types"; // Importe o tipo Task
+import { EditTaskDialog } from "./edit-task-dialog"; // Importe o modal novo
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,27 +29,22 @@ import {
   CheckCircle,
   RotateCcw,
   PlayCircle,
-  Timer,
+  Pencil, // Ícone de editar
 } from "lucide-react";
 import { toast } from "sonner";
 
 interface TaskActionsProps {
-  taskId: number;
-  currentStatus: string;
+  task: Task; // Agora recebemos a tarefa completa
   onSuccess: () => void;
 }
 
-export function TaskActions({
-  taskId,
-  currentStatus,
-  onSuccess,
-}: TaskActionsProps) {
+export function TaskActions({ task, onSuccess }: TaskActionsProps) {
   const [openAlert, setOpenAlert] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false); // Controle do modal de edição
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/tasks/${taskId}`);
+      await api.delete(`/tasks/${task.id}`);
       toast.success("Tarefa removida!");
       onSuccess();
     } catch (error) {
@@ -56,20 +53,14 @@ export function TaskActions({
   };
 
   const handleStatusChange = async (newStatus: string) => {
-    setLoading(true);
     try {
-      // Envia a string exata que o Java espera (Enum)
-      await api.patch(`/tasks/${taskId}/status`, JSON.stringify(newStatus), {
-        headers: {
-          "Content-Type": "application/json",
-        },
+      await api.patch(`/tasks/${task.id}/status`, JSON.stringify(newStatus), {
+        headers: { "Content-Type": "application/json" },
       });
       toast.success("Status atualizado!");
       onSuccess();
     } catch (error) {
       toast.error("Erro ao atualizar status");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,18 +76,24 @@ export function TaskActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Mudar Status</DropdownMenuLabel>
+          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+
+          {/* Item de Editar */}
+          <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Editar
+          </DropdownMenuItem>
+
           <DropdownMenuSeparator />
 
-          {/* Lógica de Opções de Status */}
-
-          {currentStatus === "PENDING" && (
+          {/* Lógica de Status */}
+          {task.status === "PENDING" && (
             <>
               <DropdownMenuItem
                 onClick={() => handleStatusChange("IN_PROGRESS")}
               >
                 <PlayCircle className="mr-2 h-4 w-4 text-blue-600" />
-                Começar (Fazendo)
+                Começar
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
                 <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
@@ -105,7 +102,7 @@ export function TaskActions({
             </>
           )}
 
-          {currentStatus === "IN_PROGRESS" && (
+          {task.status === "IN_PROGRESS" && (
             <>
               <DropdownMenuItem onClick={() => handleStatusChange("PENDING")}>
                 <RotateCcw className="mr-2 h-4 w-4 text-orange-500" />
@@ -118,7 +115,7 @@ export function TaskActions({
             </>
           )}
 
-          {currentStatus === "COMPLETED" && (
+          {task.status === "COMPLETED" && (
             <DropdownMenuItem onClick={() => handleStatusChange("PENDING")}>
               <RotateCcw className="mr-2 h-4 w-4 text-orange-500" />
               Reabrir Tarefa
@@ -137,7 +134,14 @@ export function TaskActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modais Controlados pelo Menu */}
+      <EditTaskDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        task={task}
+        onSuccess={onSuccess}
+      />
+
       <AlertDialog open={openAlert} onOpenChange={setOpenAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
