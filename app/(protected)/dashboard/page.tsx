@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { LogOut, Plus, Calendar, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { CreateCategoryDialog } from "@/components/dashboard/create-category-dialog";
+import { CreateTaskDialog } from "@/components/dashboard/create-task-dialog";
 
 export default function DashboardPage() {
   const { logout, token } = useAuth();
@@ -73,12 +75,8 @@ export default function DashboardPage() {
             Minhas Tarefas
           </h2>
           <div className="flex gap-2">
-            <Button variant="outline">
-              <Plus className="h-4 w-4 mr-2" /> Nova Categoria
-            </Button>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" /> Nova Tarefa
-            </Button>
+            <CreateCategoryDialog onSuccess={fetchDashboard} />
+            <CreateTaskDialog onSuccess={fetchDashboard} />
           </div>
         </div>
 
