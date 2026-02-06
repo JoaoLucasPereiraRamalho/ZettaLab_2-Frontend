@@ -101,6 +101,7 @@ export default function KanbanPage() {
         headers: { "Content-Type": "application/json" },
       });
       toast.success("Movido com sucesso!");
+      fetchTasks();
     } catch (error) {
       toast.error("Erro ao mover tarefa");
       setTasks(oldTasks);
@@ -154,9 +155,8 @@ export default function KanbanPage() {
   }
 
   return (
-    // 1. h-screen no container principal garante que a página ocupe 100% da tela do navegador
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
-      {/* CABEÇALHO (shrink-0 impede que ele encolha) */}
+      {/* CABEÇALHO */}
       <div className="flex items-center justify-between p-8 pb-4 shrink-0 bg-slate-50 z-10">
         <div className="flex items-center gap-2">
           <div className="bg-primary h-10 w-10 rounded-lg flex items-center justify-center">
@@ -179,24 +179,17 @@ export default function KanbanPage() {
         </div>
       </div>
 
-      {/* 2. MAIN com 'flex-1' e 'overflow-hidden'. 
-         Isso diz: "Ocupe todo o espaço que sobra, mas se o conteúdo for maior, CORTA e não rola a página inteira" */}
       <main className="flex-1 overflow-hidden p-8 pt-2">
-        {/* 3. GRID com 'h-full'. Garante que as colunas ocupem a altura do Main */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full pb-4">
           {KANBAN_COLUMNS.map((column) => {
             const columnTasks = getTasksByStatus(column.id);
 
             return (
-              // 4. COLUNA INDIVIDUAL
-              // 'h-full': Ocupa altura total da grid
-              // 'flex flex-col': Organiza cabeçalho e lista verticalmente
-              // 'min-h-0': TRUQUE CRUCIAL do Flexbox para permitir scroll interno
               <div
                 key={column.id}
                 className="flex flex-col bg-slate-100/50 rounded-xl border border-slate-200 h-full min-h-0"
               >
-                {/* Cabeçalho da Coluna (Fixo, não rola) */}
+                {/* Cabeçalho da Coluna */}
                 <div
                   className={`p-3 rounded-t-xl text-white flex justify-between items-center ${column.color} shrink-0`}
                 >
@@ -209,11 +202,7 @@ export default function KanbanPage() {
                   </Badge>
                 </div>
 
-                {/* 5. ÁREA DE SCROLL (Troquei ScrollArea por div nativa)
-                   'flex-1': Ocupa todo o espaço restante da coluna
-                   'overflow-y-auto': Cria a barra de rolagem AQUI se precisar
-                   'min-h-0': Garante que o scroll apareça
-                */}
+                {/* SCROLL INTERNO */}
                 <div className="flex-1 overflow-y-auto p-3 min-h-0">
                   <div className="flex flex-col gap-3">
                     {columnTasks.length === 0 ? (
@@ -225,6 +214,13 @@ export default function KanbanPage() {
                         const priorityConfig = getPriorityConfig(task.priority);
                         const categoryColor = task.category?.color || "#cbd5e1";
                         const categoryName = task.category?.name || "Geral";
+
+                        // --- CORREÇÃO AQUI ---
+                        // Garantimos que o 'categoryId' existe para o modal de edição
+                        const taskWithCategory = {
+                          ...task,
+                          categoryId: task.categoryId || task.category?.id,
+                        };
 
                         return (
                           <Card
@@ -248,8 +244,10 @@ export default function KanbanPage() {
                                     {task.title}
                                   </CardTitle>
                                 </div>
+
+                                {/* Passamos o objeto corrigido para o TaskActions */}
                                 <TaskActions
-                                  task={task}
+                                  task={taskWithCategory}
                                   onSuccess={fetchTasks}
                                 />
                               </div>
