@@ -1,71 +1,119 @@
-💻 Zetta Todo - Frontend
-Interface moderna e intuitiva para gerenciamento de tarefas, utilizando o conceito de quadros Kanban e organização por categorias. O projeto foi desenvolvido com foco em performance e experiência do usuário (UX).
+# 💻 Zetta Todo — Frontend
 
-✨ Funcionalidades Principais
-Gestão de Tarefas: Criação, edição e exclusão de tarefas com prazos e níveis de prioridade.
+Interface moderna para gerenciamento de tarefas com quadro Kanban, categorias e subtarefas. Desenvolvido com Next.js, TypeScript e foco em performance e UX.
 
-Quadro Kanban: Visualização clara do fluxo de trabalho (Pendente, Em Andamento, Concluído).
+---
 
-Subtarefas: Controle detalhado de itens dentro de uma tarefa principal.
+## ✨ Funcionalidades
 
-Categorias Personalizadas: Organização visual por cores para diferenciar projetos ou áreas da vida.
+| Recurso | Descrição |
+|--------|------------|
+| **Tarefas** | Criar, editar e excluir tarefas com prazo e prioridade (Baixa, Média, Alta, Urgente, Longo Prazo). |
+| **Quadro Kanban** | Visualização por status: Pendente, Fazendo e Concluído. |
+| **Subtarefas** | Checklist dentro de cada tarefa com toggle de conclusão. |
+| **Categorias** | Organização por categorias com cores personalizadas. |
+| **Dashboard** | Visão por categoria com cards e contadores. |
+| **Autenticação** | Login e cadastro com JWT (token em `localStorage`). |
 
-Dashboard: Resumo das atividades e tarefas filtradas por categoria.
+---
 
-Autenticação: Fluxo de login e cadastro integrado com segurança via JWT.
+## 🛠️ Stack
 
-🛠️ Tecnologias Utilizadas
-Next.js 14/15: Framework React para renderização rápida e rotas otimizadas.
+- **Next.js 16** — App Router, React Server Components
+- **TypeScript** — Tipagem estática
+- **Tailwind CSS** — Estilização utilitária
+- **Radix UI** — Componentes acessíveis (Dialog, Select, Dropdown, etc.)
+- **Axios** — Cliente HTTP com interceptors para JWT
+- **Lucide React** — Ícones
+- **Sonner** — Toasts de notificação
 
-TypeScript: Garantia de tipagem e segurança no desenvolvimento.
+---
 
-Tailwind CSS: Estilização utilitária para um design responsivo e moderno.
+## 🚀 Como rodar
 
-Shadcn/UI: Biblioteca de componentes de alta qualidade e acessibilidade.
+### Pré-requisitos
 
-Axios: Cliente HTTP para comunicação com a API REST.
+- **Node.js** 18+
+- **Backend** da API rodando (por padrão em `http://localhost:8080`)
 
-Lucide React: Conjunto de ícones leves e elegantes.
+### Passo a passo
 
-🚀 Como Executar o Projeto
-Pré-requisitos
-Node.js instalado (versão 18 ou superior).
+```bash
+# Clonar e entrar no projeto
+git clone https://github.com/seu-usuario/todo-front.git
+cd todo-front
 
-Backend da API em execução (por padrão na porta 8080).
-
-Passo a Passo
-Clonar o repositório:
-
-Bash
-git clone https://github.com/seu-usuario/seu-repositorio-frontend.git
-cd seu-repositorio-frontend
-Instalar as dependências:
-
-Bash
+# Instalar dependências
 npm install
 
-# ou
-
-yarn install
-Configurar variáveis de ambiente: Crie um arquivo .env.local na raiz do projeto e adicione a URL do seu backend:
-
-Snippet de código
-NEXT_PUBLIC_API_URL=http://localhost:8080
-Iniciar o servidor de desenvolvimento:
-
-Bash
+# Subir o servidor de desenvolvimento
 npm run dev
-O frontend estará disponível em http://localhost:3000.
+```
 
-📁 Estrutura de Pastas
-/src/components: Componentes reutilizáveis (botões, cards, inputs).
+Acesse **http://localhost:3000**.
 
-/src/app: Páginas e rotas da aplicação (Next.js App Router).
+Para produção, a URL da API pode ser alterada em `lib/api.ts` (ou use variável de ambiente e ajuste o código).
 
-/src/services: Configurações do Axios e chamadas para a API.
+---
 
-/src/hooks: Hooks personalizados para gerenciamento de estado e lógica.
+## 📜 Scripts
 
-/src/types: Definições de interfaces TypeScript para DTOs e Modelos.
+| Comando | Descrição |
+|--------|-----------|
+| `npm run dev` | Servidor de desenvolvimento (porta 3000) |
+| `npm run build` | Build de produção |
+| `npm run start` | Servidor de produção (após `build`) |
+| `npm run lint` | Executa o ESLint |
 
-Dica: Para uma melhor experiência de teste, certifique-se de que o backend esteja rodando antes de realizar o login.
+---
+
+## 📁 Estrutura do projeto
+
+```
+todo-front/
+├── app/                    # Rotas (Next.js App Router)
+│   ├── (auth)/             # Login e registro (públicas)
+│   ├── (protected)/        # Dashboard e Kanban (autenticadas)
+│   ├── layout.tsx           # Layout raiz + AuthProvider + Toaster
+│   └── page.tsx            # Redireciona para /dashboard ou /login
+├── components/
+│   ├── dashboard/          # Modais e header do app (tarefas, categorias, etc.)
+│   ├── tasks/              # Componentes compartilhados (ex.: SubtaskInline)
+│   └── ui/                 # Componentes base (shadcn: Button, Card, Dialog, etc.)
+├── context/
+│   └── auth-context.tsx    # Estado global de autenticação (token, login, logout)
+├── hooks/
+│   ├── use-dashboard.ts   # Lógica do dashboard (fetch, status, subtarefas)
+│   └── use-kanban-tasks.ts # Lógica do Kanban (fetch, mover, subtarefas)
+├── lib/
+│   ├── api.ts              # Instância Axios (baseURL + interceptor JWT)
+│   ├── constants/          # Prioridades, colunas Kanban, etc.
+│   └── utils.ts            # Utilitários (ex.: cn)
+├── services/               # Camada de serviços (chamadas à API)
+│   ├── tasks.service.ts
+│   ├── subtasks.service.ts
+│   ├── categories.service.ts
+│   └── auth.service.ts
+└── types/                  # Interfaces TypeScript (User, Task, Category, etc.)
+```
+
+---
+
+## 🔗 Integração com o backend
+
+O frontend espera uma API REST na porta **8080** com endpoints como:
+
+- `POST /auth/login` — Login (retorna `{ token }`)
+- `POST /users` — Cadastro
+- `GET /tasks`, `GET /tasks/dashboard` — Listar tarefas
+- `POST /tasks`, `PUT /tasks/:id`, `PATCH /tasks/:id/status`, `DELETE /tasks/:id`
+- `GET /categories`, `POST /categories`
+- `POST /subtasks`, `PATCH /subtasks/:id/status`, `DELETE /subtasks/:id`
+
+As requisições autenticadas usam o header `Authorization: Bearer <token>`.
+
+---
+
+## 💡 Dica
+
+Para testar o fluxo completo, inicie o **backend** antes de acessar o frontend e fazer login.
