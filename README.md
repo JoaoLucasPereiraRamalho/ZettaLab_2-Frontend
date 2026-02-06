@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+💻 Zetta Todo - Frontend
+Interface moderna e intuitiva para gerenciamento de tarefas, utilizando o conceito de quadros Kanban e organização por categorias. O projeto foi desenvolvido com foco em performance e experiência do usuário (UX).
 
-## Getting Started
+✨ Funcionalidades Principais
+Gestão de Tarefas: Criação, edição e exclusão de tarefas com prazos e níveis de prioridade.
 
-First, run the development server:
+Quadro Kanban: Visualização clara do fluxo de trabalho (Pendente, Em Andamento, Concluído).
 
-```bash
+Subtarefas: Controle detalhado de itens dentro de uma tarefa principal.
+
+Categorias Personalizadas: Organização visual por cores para diferenciar projetos ou áreas da vida.
+
+Dashboard: Resumo das atividades e tarefas filtradas por categoria.
+
+Autenticação: Fluxo de login e cadastro integrado com segurança via JWT.
+
+🛠️ Tecnologias Utilizadas
+Next.js 14/15: Framework React para renderização rápida e rotas otimizadas.
+
+TypeScript: Garantia de tipagem e segurança no desenvolvimento.
+
+Tailwind CSS: Estilização utilitária para um design responsivo e moderno.
+
+Shadcn/UI: Biblioteca de componentes de alta qualidade e acessibilidade.
+
+Axios: Cliente HTTP para comunicação com a API REST.
+
+Lucide React: Conjunto de ícones leves e elegantes.
+
+🚀 Como Executar o Projeto
+Pré-requisitos
+Node.js instalado (versão 18 ou superior).
+
+Backend da API em execução (por padrão na porta 8080).
+
+Passo a Passo
+Clonar o repositório:
+
+Bash
+git clone https://github.com/seu-usuario/seu-repositorio-frontend.git
+cd seu-repositorio-frontend
+Instalar as dependências:
+
+Bash
+npm install
+
+# ou
+
+yarn install
+Configurar variáveis de ambiente: Crie um arquivo .env.local na raiz do projeto e adicione a URL do seu backend:
+
+Snippet de código
+NEXT_PUBLIC_API_URL=http://localhost:8080
+Iniciar o servidor de desenvolvimento:
+
+Bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+O frontend estará disponível em http://localhost:3000.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+📁 Estrutura de Pastas
+/src/components: Componentes reutilizáveis (botões, cards, inputs).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+/src/app: Páginas e rotas da aplicação (Next.js App Router).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+/src/services: Configurações do Axios e chamadas para a API.
 
-## Learn More
+/src/hooks: Hooks personalizados para gerenciamento de estado e lógica.
 
-To learn more about Next.js, take a look at the following resources:
+/src/types: Definições de interfaces TypeScript para DTOs e Modelos.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dica: Para uma melhor experiência de teste, certifique-se de que o backend esteja rodando antes de realizar o login.
