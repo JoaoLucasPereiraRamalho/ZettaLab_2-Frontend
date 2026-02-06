@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import { DashboardData } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,144 +11,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar, Loader2, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
 import { CreateCategoryDialog } from "@/components/dashboard/create-category-dialog";
 import { CreateTaskDialog } from "@/components/dashboard/create-task-dialog";
 import { TaskActions } from "@/components/dashboard/task-actions";
-
-// --- CONFIGURAÇÕES VISUAIS E LÓGICAS ---
-
-const PRIORITY_WEIGHTS: Record<string, number> = {
-  URGENTE: 5,
-  ALTA: 4,
-  MEDIA: 3,
-  BAIXA: 2,
-  LONGO_PRAZO: 1,
-};
-
-const getPriorityConfig = (priority: string) => {
-  switch (priority) {
-    case "URGENTE":
-      return {
-        label: "Urgente",
-        color: "bg-red-600 hover:bg-red-700 text-white border-transparent",
-      };
-    case "ALTA":
-      return {
-        label: "Alta",
-        color:
-          "bg-orange-500 hover:bg-orange-600 text-white border-transparent",
-      };
-    case "MEDIA":
-      return {
-        label: "Média",
-        color:
-          "bg-yellow-500 hover:bg-yellow-600 text-white border-transparent",
-      };
-    case "BAIXA":
-      return {
-        label: "Baixa",
-        color: "bg-slate-400 hover:bg-slate-500 text-white border-transparent",
-      };
-    case "LONGO_PRAZO":
-      return {
-        label: "Longo P.",
-        color:
-          "bg-indigo-500 hover:bg-indigo-600 text-white border-transparent",
-      };
-    default:
-      return {
-        label: priority,
-        color: "bg-slate-200 text-slate-600 border-transparent",
-      };
-  }
-};
+import { SubtaskInline } from "@/components/tasks/subtask-inline";
+import { useDashboard } from "@/hooks/use-dashboard";
+import { getPriorityConfig } from "@/lib/constants";
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // --- BUSCAR E ORDENAR ---
-  const fetchDashboard = async () => {
-    try {
-      const response = await api.get("/tasks/dashboard");
-      const rawData: DashboardData[] = response.data;
-
-      // Ordena as tarefas dentro de cada coluna
-      const sortedData = rawData.map((column) => ({
-        ...column,
-        tasks: column.tasks.sort((a, b) => {
-          const weightA = PRIORITY_WEIGHTS[a.priority] || 0;
-          const weightB = PRIORITY_WEIGHTS[b.priority] || 0;
-          return weightB - weightA;
-        }),
-      }));
-
-      setData(sortedData);
-    } catch (error) {
-      toast.error("Erro ao carregar tarefas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
-
-  // --- ATUALIZAR STATUS TAREFA ---
-  const updateTaskStatus = async (taskId: number, newStatus: string) => {
-    const oldData = [...data];
-    const newData = data.map((col) => ({
-      ...col,
-      tasks: col.tasks.map((t) =>
-        t.id === taskId ? { ...t, status: newStatus } : t,
-      ),
-    }));
-    setData(newData);
-
-    try {
-      await api.patch(`/tasks/${taskId}/status`, JSON.stringify(newStatus), {
-        headers: { "Content-Type": "application/json" },
-      });
-      toast.success("Status atualizado!");
-      fetchDashboard();
-    } catch (error) {
-      toast.error("Erro ao atualizar status");
-      setData(oldData);
-    }
-  };
-
-  // --- ATUALIZAR SUBTAREFA ---
-  const toggleSubtask = async (sub: any) => {
-    const isCompleted = sub.status === "COMPLETED" || sub.completed === true;
-    const newStatus = isCompleted ? "PENDING" : "COMPLETED";
-
-    const newData = data.map((col) => ({
-      ...col,
-      tasks: col.tasks.map((t) => {
-        if (t.id === sub.taskId) {
-          return {
-            ...t,
-            subtasks: t.subtasks?.map((s: any) =>
-              s.id === sub.id ? { ...s, status: newStatus } : s,
-            ),
-          };
-        }
-        return t;
-      }),
-    }));
-    setData(newData);
-
-    try {
-      await api.patch(`/subtasks/${sub.id}/status`, JSON.stringify(newStatus), {
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (error) {
-      toast.error("Erro ao atualizar subtarefa");
-      fetchDashboard();
-    }
-  };
+  const {
+    data,
+    loading,
+    fetchDashboard,
+    updateTaskStatus,
+    toggleSubtask,
+  } = useDashboard();
 
   if (loading) {
     return (
@@ -164,7 +38,6 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-full bg-slate-50">
       <main className="flex-1 overflow-auto p-8">
-        {/* Barra de Título e Ações */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-semibold text-slate-800">
@@ -186,7 +59,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Área de Colunas */}
         <ScrollArea className="w-full whitespace-nowrap rounded-md h-[calc(100%-4rem)]">
           <div className="flex gap-6 pb-4">
             {data.map((column) => (
@@ -240,50 +112,25 @@ export default function DashboardPage() {
                           </CardHeader>
 
                           <CardContent className="p-4 pt-2">
-                            {/* Subtarefas */}
                             {task.subtasks && task.subtasks.length > 0 && (
                               <div className="mt-2 flex flex-col gap-1 border-t pt-2 border-slate-100">
-                                {task.subtasks.map((sub: any) => {
-                                  const isCompleted =
-                                    sub.status === "COMPLETED" ||
-                                    sub.completed === true;
-
-                                  return (
-                                    <div
-                                      key={sub.id}
-                                      className="flex items-center gap-2 text-xs group cursor-pointer hover:bg-slate-50 p-0.5 rounded"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleSubtask(sub);
-                                      }}
-                                    >
-                                      <div
-                                        className={`h-3 w-3 rounded-full shrink-0 border transition-all ${
-                                          isCompleted
-                                            ? "bg-green-500 border-green-500"
-                                            : "bg-transparent border-slate-300 group-hover:border-slate-400"
-                                        }`}
-                                      />
-                                      <span
-                                        className={`truncate max-w-[220px] select-none ${
-                                          isCompleted
-                                            ? "line-through text-slate-400"
-                                            : "text-slate-600"
-                                        }`}
-                                        title={sub.description}
-                                      >
-                                        {sub.description}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
+                                {task.subtasks.map((sub: { id: number; taskId: number; description: string; status: string; completed?: boolean }) => (
+                                  <SubtaskInline
+                                    key={sub.id}
+                                    id={sub.id}
+                                    taskId={sub.taskId}
+                                    description={sub.description}
+                                    status={sub.status}
+                                    completed={sub.completed}
+                                    onToggle={toggleSubtask}
+                                    variant="dashboard"
+                                  />
+                                ))}
                               </div>
                             )}
 
-                            {/* Rodapé do Card */}
                             <div className="flex items-center justify-between text-xs text-slate-500 mt-3 flex-wrap gap-2">
                               <div className="flex items-center gap-2">
-                                {/* STATUS */}
                                 <DropdownMenu>
                                   <DropdownMenuTrigger className="focus:outline-none">
                                     <Badge
@@ -328,7 +175,6 @@ export default function DashboardPage() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
 
-                                {/* PRIORIDADE */}
                                 <Badge
                                   variant="outline"
                                   className={`text-[10px] px-2 py-0.5 h-6 ${priorityConfig.color}`}
@@ -337,7 +183,6 @@ export default function DashboardPage() {
                                 </Badge>
                               </div>
 
-                              {/* DATA */}
                               {task.dueDate && (
                                 <div
                                   className="flex items-center gap-1"

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
 import { Category } from "@/types";
+import { categoriesService } from "@/services/categories.service";
+import { tasksService } from "@/services/tasks.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +41,7 @@ export function CreateTaskDialog({ onSuccess }: CreateTaskDialogProps) {
   const [dueDate, setDueDate] = useState("");
 
   useEffect(() => {
-    api.get("/categories").then((res) => setCategories(res.data));
+    categoriesService.getAll().then(setCategories);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +53,7 @@ export function CreateTaskDialog({ onSuccess }: CreateTaskDialogProps) {
     setLoading(true);
 
     try {
-      await api.post("/tasks", {
+      await tasksService.create({
         title,
         description,
         priority,

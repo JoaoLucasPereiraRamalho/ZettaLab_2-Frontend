@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Task } from "@/types";
-import api from "@/lib/api";
+import { tasksService } from "@/services/tasks.service";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,7 +39,7 @@ export function TaskActions({ task, onSuccess }: TaskActionsProps) {
 
     setLoadingDelete(true);
     try {
-      await api.delete(`/tasks/${task.id}`);
+      await tasksService.delete(task.id);
       toast.success("Tarefa excluída com sucesso!");
       onSuccess(); // Atualiza a lista no fundo
     } catch (error) {

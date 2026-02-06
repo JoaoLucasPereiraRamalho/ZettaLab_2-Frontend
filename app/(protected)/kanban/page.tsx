@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import { Task } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,139 +9,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar, Loader2, KanbanSquare, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
-import { TaskActions } from "@/components/dashboard/task-actions";
 import { Button } from "@/components/ui/button";
 import { CreateCategoryDialog } from "@/components/dashboard/create-category-dialog";
 import { CreateTaskDialog } from "@/components/dashboard/create-task-dialog";
-
-// --- CONFIGURAÇÕES VISUAIS E LÓGICAS ---
-
-const PRIORITY_WEIGHTS: Record<string, number> = {
-  URGENTE: 5,
-  ALTA: 4,
-  MEDIA: 3,
-  BAIXA: 2,
-  LONGO_PRAZO: 1,
-};
-
-const getPriorityConfig = (priority: string) => {
-  switch (priority) {
-    case "URGENTE":
-      return {
-        label: "Urgente",
-        color: "bg-red-600 text-white border-transparent",
-      };
-    case "ALTA":
-      return {
-        label: "Alta",
-        color: "bg-orange-500 text-white border-transparent",
-      };
-    case "MEDIA":
-      return {
-        label: "Média",
-        color: "bg-yellow-500 text-white border-transparent",
-      };
-    case "BAIXA":
-      return {
-        label: "Baixa",
-        color: "bg-slate-400 text-white border-transparent",
-      };
-    case "LONGO_PRAZO":
-      return {
-        label: "Longo P.",
-        color: "bg-indigo-500 text-white border-transparent",
-      };
-    default:
-      return {
-        label: priority,
-        color: "bg-slate-200 text-slate-600 border-transparent",
-      };
-  }
-};
-
-const KANBAN_COLUMNS = [
-  { id: "PENDING", title: "Pendente", color: "bg-slate-500" },
-  { id: "IN_PROGRESS", title: "Fazendo", color: "bg-blue-500" },
-  { id: "COMPLETED", title: "Concluído", color: "bg-green-500" },
-];
+import { TaskActions } from "@/components/dashboard/task-actions";
+import { SubtaskInline } from "@/components/tasks/subtask-inline";
+import { Task } from "@/types";
+import { useKanbanTasks } from "@/hooks/use-kanban-tasks";
+import { getPriorityConfig, KANBAN_COLUMNS } from "@/lib/constants";
 
 export default function KanbanPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchTasks = async () => {
-    try {
-      const response = await api.get("/tasks");
-      setTasks(response.data);
-    } catch (error) {
-      toast.error("Erro ao carregar tarefas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const updateTaskStatus = async (taskId: number, newStatus: string) => {
-    const oldTasks = [...tasks];
-    setTasks(
-      tasks.map((t) =>
-        t.id === taskId ? ({ ...t, status: newStatus } as any) : t,
-      ),
-    );
-
-    try {
-      await api.patch(`/tasks/${taskId}/status`, JSON.stringify(newStatus), {
-        headers: { "Content-Type": "application/json" },
-      });
-      toast.success("Movido com sucesso!");
-      fetchTasks();
-    } catch (error) {
-      toast.error("Erro ao mover tarefa");
-      setTasks(oldTasks);
-    }
-  };
-
-  const toggleSubtask = async (sub: any) => {
-    const isCompleted = sub.status === "COMPLETED" || sub.completed === true;
-    const newStatus = isCompleted ? "PENDING" : "COMPLETED";
-
-    setTasks(
-      tasks.map((t) => {
-        if (t.id === sub.taskId) {
-          return {
-            ...t,
-            subtasks: t.subtasks?.map((s: any) =>
-              s.id === sub.id ? { ...s, status: newStatus } : s,
-            ),
-          };
-        }
-        return t;
-      }),
-    );
-
-    try {
-      await api.patch(`/subtasks/${sub.id}/status`, JSON.stringify(newStatus), {
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (error) {
-      toast.error("Erro ao atualizar subtarefa");
-      fetchTasks();
-    }
-  };
-
-  const getTasksByStatus = (status: string) => {
-    return tasks
-      .filter((task) => task.status === status)
-      .sort((a, b) => {
-        const weightA = PRIORITY_WEIGHTS[a.priority] || 0;
-        const weightB = PRIORITY_WEIGHTS[b.priority] || 0;
-        return weightB - weightA;
-      });
-  };
+  const {
+    loading,
+    fetchTasks,
+    updateTaskStatus,
+    toggleSubtask,
+    getTasksByStatus,
+  } = useKanbanTasks();
 
   if (loading) {
     return (
@@ -156,7 +37,6 @@ export default function KanbanPage() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
-      {/* CABEÇALHO */}
       <div className="flex items-center justify-between p-8 pb-4 shrink-0 bg-slate-50 z-10">
         <div className="flex items-center gap-2">
           <div className="bg-primary h-10 w-10 rounded-lg flex items-center justify-center">
@@ -189,7 +69,6 @@ export default function KanbanPage() {
                 key={column.id}
                 className="flex flex-col bg-slate-100/50 rounded-xl border border-slate-200 h-full min-h-0"
               >
-                {/* Cabeçalho da Coluna */}
                 <div
                   className={`p-3 rounded-t-xl text-white flex justify-between items-center ${column.color} shrink-0`}
                 >
@@ -202,7 +81,6 @@ export default function KanbanPage() {
                   </Badge>
                 </div>
 
-                {/* SCROLL INTERNO */}
                 <div className="flex-1 overflow-y-auto p-3 min-h-0">
                   <div className="flex flex-col gap-3">
                     {columnTasks.length === 0 ? (
@@ -210,16 +88,13 @@ export default function KanbanPage() {
                         Vazio
                       </div>
                     ) : (
-                      columnTasks.map((task: any) => {
+                      columnTasks.map((task: Task & { category?: { color?: string; name?: string; id?: number } }) => {
                         const priorityConfig = getPriorityConfig(task.priority);
                         const categoryColor = task.category?.color || "#cbd5e1";
                         const categoryName = task.category?.name || "Geral";
-
-                        // --- CORREÇÃO AQUI ---
-                        // Garantimos que o 'categoryId' existe para o modal de edição
-                        const taskWithCategory = {
+                        const taskWithCategory: Task = {
                           ...task,
-                          categoryId: task.categoryId || task.category?.id,
+                          categoryId: task.categoryId ?? task.category?.id,
                         };
 
                         return (
@@ -245,7 +120,6 @@ export default function KanbanPage() {
                                   </CardTitle>
                                 </div>
 
-                                {/* Passamos o objeto corrigido para o TaskActions */}
                                 <TaskActions
                                   task={taskWithCategory}
                                   onSuccess={fetchTasks}
@@ -254,37 +128,23 @@ export default function KanbanPage() {
                             </CardHeader>
 
                             <CardContent className="p-3 pt-2">
-                              {/* Subtarefas */}
                               {task.subtasks && task.subtasks.length > 0 && (
                                 <div className="mt-1 flex flex-col gap-1 border-t pt-2 border-slate-100 mb-3">
-                                  {task.subtasks.map((sub: any) => {
-                                    const isCompleted =
-                                      sub.status === "COMPLETED" ||
-                                      sub.completed === true;
-                                    return (
-                                      <div
-                                        key={sub.id}
-                                        className="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 rounded p-0.5"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleSubtask(sub);
-                                        }}
-                                      >
-                                        <div
-                                          className={`h-2.5 w-2.5 rounded-full shrink-0 border transition-all ${isCompleted ? "bg-green-500 border-green-500" : "bg-transparent border-slate-300"}`}
-                                        />
-                                        <span
-                                          className={`truncate max-w-[200px] select-none ${isCompleted ? "line-through text-slate-400" : "text-slate-600"}`}
-                                        >
-                                          {sub.description}
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
+                                  {task.subtasks.map((sub) => (
+                                    <SubtaskInline
+                                      key={sub.id}
+                                      id={sub.id}
+                                      taskId={sub.taskId}
+                                      description={sub.description}
+                                      status={sub.status}
+                                      completed={sub.completed}
+                                      onToggle={toggleSubtask}
+                                      variant="kanban"
+                                    />
+                                  ))}
                                 </div>
                               )}
 
-                              {/* Rodapé */}
                               <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
                                 <div className="flex gap-1 items-center">
                                   <Badge

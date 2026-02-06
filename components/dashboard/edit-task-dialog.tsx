@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/lib/api";
 import { Task } from "@/types";
+import { tasksService } from "@/services/tasks.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,7 +48,7 @@ export function EditTaskDialog({
     setLoading(true);
 
     try {
-      await api.put(`/tasks/${task.id}`, {
+      await tasksService.update(task.id, {
         title,
         description,
         priority,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
-import api from "@/lib/api";
+import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,9 +27,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", { email, password });
+      const { token } = await authService.login(email, password);
       toast.success("Login realizado com sucesso!");
-      login(response.data.token);
+      login(token);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Falha ao fazer login");
     } finally {

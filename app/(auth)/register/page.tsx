@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
+import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,7 +28,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await api.post("/users", { name, email, password });
+      await authService.register(name, email, password);
       toast.success("Conta criada! Faça login.");
       router.push("/login");
     } catch (err: any) {

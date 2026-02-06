@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import api from "@/lib/api";
 import { Task, Subtask } from "@/types";
+import { tasksService } from "@/services/tasks.service";
 import { SubtaskList } from "./subtask-list";
 import {
   Dialog,
@@ -35,9 +35,9 @@ export function SubtasksDialog({
 
   const refreshSubtasks = async () => {
     try {
-      const response = await api.get(`/tasks/${task.id}`);
-      if (response.data && response.data.subtasks) {
-        setSubtasks(response.data.subtasks);
+      const response = await tasksService.getById(task.id);
+      if (response && response.subtasks) {
+        setSubtasks(response.subtasks);
         // Toda vez que a lista mudar, avisamos o Dashboard para atualizar os cards também
         onSuccess();
       }

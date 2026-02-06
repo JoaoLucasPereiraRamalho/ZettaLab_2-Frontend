@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/lib/api";
+import { categoriesService } from "@/services/categories.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +30,7 @@ export function CreateCategoryDialog({ onSuccess }: CreateCategoryDialogProps) {
     setLoading(true);
 
     try {
-      await api.post("/categories", { name, color });
+      await categoriesService.create({ name, color });
       toast.success("Categoria criada com sucesso!");
       setOpen(false); // Fecha o modal
       setName(""); // Limpa o form

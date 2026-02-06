@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/lib/api";
 import { Subtask } from "@/types";
+import { subtasksService } from "@/services/subtasks.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,8 +25,8 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
     setLoadingAdd(true);
 
     try {
-      await api.post("/subtasks", {
-        description: newText, // <--- AJUSTE 1: Nome do campo correto para o Java
+      await subtasksService.create({
+        description: newText,
         taskId: taskId,
       });
       setNewText("");
@@ -45,9 +45,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
     const newStatus = isCompleted ? "PENDING" : "COMPLETED"; // Envia string para o Java
 
     try {
-      await api.patch(`/subtasks/${sub.id}/status`, JSON.stringify(newStatus), {
-        headers: { "Content-Type": "application/json" },
-      });
+      await subtasksService.updateStatus(sub.id, newStatus);
       onUpdate();
     } catch (error) {
       toast.error("Erro ao atualizar status");
@@ -57,7 +55,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
   // 3. DELETAR
   const handleDelete = async (subTaskId: number) => {
     try {
-      await api.delete(`/subtasks/${subTaskId}`);
+      await subtasksService.delete(subTaskId);
       toast.success("Removido!");
       onUpdate();
     } catch (error) {
